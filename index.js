@@ -1,3 +1,7 @@
+let lat = 46.2165586970357
+let long = 7.31383640082898
+let direction = 253
+
 var feetToMeters = feet => feet / 3.2808
 var MetersToFeet = meters => meters * 3.2808
 var milesToMeters = miles => miles * 1852
@@ -16,7 +20,7 @@ var position = (lat, long, angle, distance) => {
   return { X, Y }
 }
 
-var final = (lat, long, angle, feet) => {
+var calcEdges = (lat, long, angle, feet) => {
   let Mid = position(lat, long, angle, feet)
   let Minus90 = position(lat, long, angle - 90, feet)
   let Plus90 = position(lat, long, angle + 90, feet)
@@ -26,27 +30,30 @@ var final = (lat, long, angle, feet) => {
 var feet600 = 9601 // 2956
 var feet4000 = 64001 // 19507
 
-var calculate = (distanceInFeet, maxDistanceInFeet, stepInMeters) => {
+var calculate = (
+  distanceInFeet,
+  maxDistanceInFeet,
+  stepInMeters,
+  lat,
+  long,
+  angle
+) => {
   let data = {
     small: [],
     medium: [],
     large: []
   }
   for (
-    distanceInFeet;
-    distanceInFeet <= maxDistanceInFeet;
-    distanceInFeet + MetersToFeet(stepInMeters)
+    let i = distanceInFeet;
+    i <= maxDistanceInFeet;
+    i + MetersToFeet(stepInMeters)
   ) {
-    if (distanceInFeet * 0.0625 < 600) {
-      data.small.push(position(lat, long, angle - 90, feetToMeters(feet)))
-    } else if (
-      distanceInFeet * 0.0625 > 600 &&
-      distanceInFeet * 0.0625 <= 2000
-    ) {
+    if (i * 0.0625 < 600) {
+      data.small.push(calcEdges(lat, long, angle - 90, i))
+    } else if (i * 0.0625 > 600 && i * 0.0625 <= 2000) {
     } else {
     }
   }
 }
 
 //46.2165586970357 7.31383640082898
-console.log(final(46.2165586970357, 7.31383640082898, 253 - 90))
