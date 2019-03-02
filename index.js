@@ -49,10 +49,13 @@ var calculate = (
     i + MetersToFeet(stepInMeters)
   ) {
     if (i * 0.0625 < 600) {
-      data.small.push(calcEdges(lat, long, angle - 90, i))
+      data.small.push(calcEdges(lat, long, angle, i))
     } else if (i * 0.0625 > 600 && i * 0.0625 <= 2000) {
-    } else {
+      data.medium.push(calcEdges(lat, long, angle, i))
+    } else if (i * 0.0625 > 2000) {
+      data.large.push(calcEdges(lat, long, angle, i))
     }
+    return data
   }
 }
 
