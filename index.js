@@ -1,3 +1,6 @@
+const geolib = require('geolib')
+const srtm = require('srtm-reader')
+
 var FeetToMeters = feet => feet / 3.2808
 var MetersToFeet = meters => meters * 3.2808
 var MilesToMeters = miles => miles * 1852
@@ -17,60 +20,85 @@ var position = (lat, long, angle, distance) => {
   return { X, Y }
 }
 
-var CalcEdges = (lat, long, angle, feet) => {
-  let Mid = position(lat, long, angle, feet)
-  let Minus90 = position(lat, long, angle - 90, feet)
-  let Plus90 = position(lat, long, angle + 90, feet)
-  return { mid: Mid, minus: Minus90, plus: Plus90 }
+var CalcEdges = (lat, long, angle, feet, step = 30) => {
+  var arr = new Array()
+  arr.push(position(lat, long, angle, feet))
+  for (let i = 0; i <= FeetToMeters(feet); i += step) {
+    arr.push(position(lat, long, angle - 90, i))
+    arr.push(position(lat, long, angle + 90, i))
+  }
+  return arr
 }
 
 var feet600 = 9601 // 2956
 var feet4000 = 64001 // 19507
 
-var CalculateAllEdges = (maxDistanceInFeet, stepInMeters, lat, long, angle) => {
-  let data = {
-    small: new Array(),
-    medium: new Array(),
-    large: new Array()
-  }
+var CalculateAllEdges = (
+  maxDistanceInMiles,
+  stepInMeters,
+  lat,
+  long,
+  angle
+) => {
+  let data = new Array()
   let feet = MetersToFeet(stepInMeters)
-  for (let i = 0; i <= maxDistanceInFeet; i += feet) {
+  let maxDistanceInMeters = MilesToFeet(maxDistanceInMiles)
+  for (let i = 0; i <= maxDistanceInMeters; i += feet) {
     if (i * 0.0625 <= 300) {
-      data.small.push(CalcEdges(lat, long, angle, 300))
+      data.push(CalcEdges(lat, long, angle, 300, stepInMeters))
     } else if (i * 0.0625 > 300 && i * 0.0625 <= 1000) {
-      data.medium.push(CalcEdges(lat, long, angle, i))
+      data.push(CalcEdges(lat, long, angle, i, stepInMeters))
     } else if (i * 0.0625 > 2000) {
-      data.large.push(CalcEdges(lat, long, angle, 1000))
+      data.push(CalcEdges(lat, long, angle, 1000, stepInMeters))
     }
   }
   return data
 }
 
-var GetHighestPoints = (p, step = 30) => {
-  console.log(p.length)
-
+var GetHighestPoints = p => {
+  var ss = new Array()
   p.forEach(item => {
-    console.log(item.mid)
-    CalcEdges
+    item.forEach(item => {
+      // console.log(item.X)
+      // console.log(item.Y)
+      // console.log(Object.prototype.toString.call(item))
+      ss.push(
+        geolib.elevation({
+          lat: item.X,
+          lng: item.Y,
+          elev: 55
+        })
+      )
+    })
   })
+  return ss
 }
 
+console.log(srtm.Quadrant())
+
+console.log(
+  geolib.getDistance(
+    { latitude: 51.5103, longitude: 7.49347 },
+    { latitude: "51° 31' N", longitude: "7° 28' E" }
+  )
+)
+
+console.log(
+  geolib.isPointInside({ latitude: 51.5125, longitude: 7.485 }, [
+    { latitude: 51.5, longitude: 7.4 },
+    { latitude: 51.555, longitude: 7.4 },
+    { latitude: 51.555, longitude: 7.625 },
+    { latitude: 51.5125, longitude: 7.625 }
+  ])
+)
+
 let lat = 46.2165586970357
-let long = 7.31383640082898
+let lng = 7.31383640082898
 let direction = 253
 let miles = 40
 let step = 30
 
-let calculatedEdges = CalculateAllEdges(
-  MilesToMeters(miles),
-  step,
-  lat,
-  long,
-  direction
-)
+let calculatedEdges = CalculateAllEdges(miles, step, lat, lng, direction)
 
-console.log(calculatedEdges.small.length)
-console.log(calculatedEdges.medium.length)
-console.log(calculatedEdges.large.length)
-
-var highestPoint = GetHighestPoints(calcEdges.small)
+var highestPoints = GetHighestPoints(calculatedEdges)
+// console.log(highestPoints)
