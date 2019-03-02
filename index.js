@@ -1,9 +1,3 @@
-let lat = 46.2165586970357
-let long = 7.31383640082898
-let direction = 253
-let miles = 40
-let step = 30
-
 var FeetToMeters = feet => feet / 3.2808
 var MetersToFeet = meters => meters * 3.2808
 var MilesToMeters = miles => miles * 1852
@@ -33,25 +27,15 @@ var CalcEdges = (lat, long, angle, feet) => {
 var feet600 = 9601 // 2956
 var feet4000 = 64001 // 19507
 
-var CalculateAllEdges = (
-  distanceInFeet,
-  maxDistanceInFeet,
-  stepInMeters,
-  lat,
-  long,
-  angle
-) => {
+var CalculateAllEdges = (maxDistanceInFeet, stepInMeters, lat, long, angle) => {
   let data = {
-    small: [],
-    medium: [],
-    large: []
+    small: new Array(),
+    medium: new Array(),
+    large: new Array()
   }
-  for (
-    let i = distanceInFeet;
-    i <= maxDistanceInFeet;
-    i + MetersToFeet(stepInMeters)
-  ) {
-    if (i * 0.0625 < 300) {
+  let feet = MetersToFeet(stepInMeters)
+  for (let i = 0; i <= maxDistanceInFeet; i += feet) {
+    if (i * 0.0625 <= 300) {
       data.small.push(CalcEdges(lat, long, angle, 300))
     } else if (i * 0.0625 > 300 && i * 0.0625 <= 1000) {
       data.medium.push(CalcEdges(lat, long, angle, i))
@@ -62,7 +46,31 @@ var CalculateAllEdges = (
   return data
 }
 
-//46.2165586970357 7.31383640082898
-console.log(
-  CalculateAllEdges(0, MilesToMeters(miles), step, lat, long, direction)
+var GetHighestPoints = (p, step = 30) => {
+  console.log(p.length)
+
+  p.forEach(item => {
+    console.log(item.mid)
+    CalcEdges
+  })
+}
+
+let lat = 46.2165586970357
+let long = 7.31383640082898
+let direction = 253
+let miles = 40
+let step = 30
+
+let calculatedEdges = CalculateAllEdges(
+  MilesToMeters(miles),
+  step,
+  lat,
+  long,
+  direction
 )
+
+console.log(calculatedEdges.small.length)
+console.log(calculatedEdges.medium.length)
+console.log(calculatedEdges.large.length)
+
+var highestPoint = GetHighestPoints(calcEdges.small)
